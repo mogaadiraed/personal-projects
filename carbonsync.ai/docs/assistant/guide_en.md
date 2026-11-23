@@ -95,7 +95,7 @@ After an upload the **whole pipeline** reruns: validation → loading → daily 
 
 Other actions: **CSV template** (download one per department), **Rerun without a new file**, "Generate the Excel report" switch, **Pipeline history**, **Coverage by department** (last 18 months), **Back to the original data** (removes uploaded files and restores the originals, with confirmation).
 
-Ready-made sample files: the project's `samples/` folder (`2026-Q1.zip` already uploaded, `2026-Q2.zip` = April–June 2026).
+Ready-made sample files: the project's `samples/` folder (`2026-Q1.zip` already uploaded, `2026-Q2.zip` = April–June 2026, `2026-Q3.zip` = July–September 2026).
 
 ## Data quality
 <!-- keywords: quality, quarantine, rejected, accepted, repaired, imputed, imputation, confidence, schema, columns, error, file -->

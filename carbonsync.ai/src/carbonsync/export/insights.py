@@ -17,6 +17,7 @@ import pandas as pd
 import yaml
 
 from carbonsync import targets
+from carbonsync.db import connect as db_connect
 from carbonsync.inventory import breakdown, scope2, scope3
 from carbonsync.models.router import router_rule
 from carbonsync.obs import get_logger
@@ -105,7 +106,7 @@ def build_insights(lang: str = "fr", run_id: str | None = None, config_path: Pat
     cfg = _load_config(config_path)
     db_path = root / cfg.get("paths", {}).get("duckdb", "data/carbonsync.duckdb")
 
-    conn = duckdb.connect(str(db_path), read_only=True)
+    conn = db_connect(str(db_path), read_only=True)
     try:
         df = conn.execute("SELECT * FROM emissions_daily ORDER BY date").fetchdf()
         runs = conn.execute("SELECT * FROM forecast_runs ORDER BY created_at DESC").fetchdf()

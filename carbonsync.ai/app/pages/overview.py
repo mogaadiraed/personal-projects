@@ -36,6 +36,9 @@ def render() -> None:
         tr("Émissions du site, tendance et trajectoire à 6 mois.", "Site emissions, trend and 6-month outlook."),
         ui.data_chips(date_label(df["date"].max()), demo, engine),
     )
+    ui.forecast_freshness(run, key="ov")
+    if run.get("stale"):  # a forecast made before the latest data: never draw it over days that have real data
+        fc = fc[fc["date"] > df["date"].max()]
 
     # ---- KPIs ---------------------------------------------------------------
     last12 = df.tail(365)

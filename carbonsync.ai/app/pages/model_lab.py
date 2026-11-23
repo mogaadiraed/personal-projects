@@ -7,7 +7,7 @@ import pandas as pd
 import streamlit as st
 
 from app.core.i18n import tr
-from app.data.loader import clear_caches, load_config, load_emissions_daily
+from app.data.loader import clear_caches, load_config, load_emissions_daily, set_active_run
 from app.ui import charts, lab_charts
 from app.ui import components as ui
 from app.ui.format import date_label, num, pct
@@ -322,5 +322,5 @@ def _save_buttons(exp) -> None:
                 st.error(f"{type(exc).__name__}: {exc}")
                 return
             clear_caches()
-            st.session_state["active_run_id"] = res["run_id"]
+            set_active_run(res["run_id"])
             st.toast(tr("Prévision active mise à jour.", "Active forecast updated."), icon=":material/check:")

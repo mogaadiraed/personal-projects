@@ -34,9 +34,11 @@ HISTORY_FILE = "pipeline_history.jsonl"
 def _emissions_snapshot(db_path: Path) -> dict[str, Any]:
     import duckdb
 
+    from carbonsync.db import connect as db_connect
+
     if not db_path.exists():
         return {"days": 0, "first": None, "last": None}
-    conn = duckdb.connect(str(db_path), read_only=True)
+    conn = db_connect(str(db_path), read_only=True)
     try:
         row = conn.execute("SELECT COUNT(*), MIN(date), MAX(date) FROM emissions_daily").fetchone()
     except duckdb.Error:

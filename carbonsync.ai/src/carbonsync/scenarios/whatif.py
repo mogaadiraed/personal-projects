@@ -23,6 +23,8 @@ import numpy as np
 import pandas as pd
 import yaml
 
+from carbonsync.db import connect as db_connect
+
 
 def get_project_root() -> Path:
     return Path(__file__).resolve().parents[3]
@@ -41,7 +43,7 @@ def get_historical_scope_shares(config_path: Path | None = None) -> dict[str, fl
     cfg = load_config(config_path)
     db_path = root / cfg.get("paths", {}).get("duckdb", "data/carbonsync.duckdb")
 
-    conn = duckdb.connect(str(db_path), read_only=True)
+    conn = db_connect(str(db_path), read_only=True)
     res = conn.execute(
         """
         SELECT
@@ -156,7 +158,7 @@ def get_latest_forecast_from_duckdb(config_path: Path | None = None) -> pd.DataF
     cfg = load_config(config_path)
     db_path = root / cfg.get("paths", {}).get("duckdb", "data/carbonsync.duckdb")
 
-    conn = duckdb.connect(str(db_path), read_only=True)
+    conn = db_connect(str(db_path), read_only=True)
     df = conn.execute(
         """
         SELECT date, horizon, yhat, lo90, hi90, model_name

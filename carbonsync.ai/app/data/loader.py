@@ -18,6 +18,7 @@ import pandas as pd
 import streamlit as st
 import yaml
 
+from carbonsync.db import connect as db_connect
 from carbonsync.obs import get_logger
 
 log = get_logger("carbonsync.app.data")
@@ -78,7 +79,7 @@ def get_duckdb_connection():
     db_path = get_duckdb_path()
     if not db_path.exists():
         return None
-    return duckdb.connect(str(db_path), read_only=True)
+    return db_connect(str(db_path), read_only=True)
 
 
 def _get_db_mtime() -> float:
@@ -94,7 +95,7 @@ def load_emissions_daily(_mtime: float | None = None) -> pd.DataFrame:
     if not db_path.exists():
         return pd.DataFrame()
 
-    conn = duckdb.connect(str(db_path), read_only=True)
+    conn = db_connect(str(db_path), read_only=True)
     try:
         t0 = time.perf_counter()
         df = conn.execute("SELECT * FROM emissions_daily ORDER BY date ASC").fetchdf()
@@ -112,7 +113,7 @@ def load_daily_raw_features(_mtime: float | None = None) -> pd.DataFrame:
     if not db_path.exists():
         return pd.DataFrame()
 
-    conn = duckdb.connect(str(db_path), read_only=True)
+    conn = db_connect(str(db_path), read_only=True)
     try:
         df = conn.execute("SELECT * FROM daily ORDER BY date ASC").fetchdf()
         log.info("DuckDB read daily: %d rows", len(df))
@@ -129,7 +130,7 @@ def load_forecast_runs(_mtime: float | None = None) -> pd.DataFrame:
     if not db_path.exists():
         return pd.DataFrame()
 
-    conn = duckdb.connect(str(db_path), read_only=True)
+    conn = db_connect(str(db_path), read_only=True)
     try:
         df = conn.execute("SELECT * FROM forecast_runs ORDER BY created_at DESC").fetchdf()
         log.info("DuckDB read forecast_runs: %d runs", len(df))
@@ -147,7 +148,7 @@ def load_forecast_by_run(run_id: str, _mtime: float | None = None) -> pd.DataFra
     if not db_path.exists():
         return pd.DataFrame()
 
-    conn = duckdb.connect(str(db_path), read_only=True)
+    conn = db_connect(str(db_path), read_only=True)
     try:
         df = conn.execute(
             "SELECT * FROM forecasts WHERE run_id = ? ORDER BY horizon ASC",
@@ -191,7 +192,7 @@ def load_backtest_summary() -> list[dict[str, Any]]:
     # Fallback to DuckDB backtest_results table
     db_path = get_duckdb_path()
     if db_path.exists():
-        conn = duckdb.connect(str(db_path), read_only=True)
+        conn = db_connect(str(db_path), read_only=True)
         try:
             df = conn.execute(
                 """
@@ -279,35 +280,56 @@ def load_latest_runs_by_model() -> dict[str, dict[str, Any]]:
     return out
 
 
-def load_active_forecast() -> tuple[pd.DataFrame, dict[str, Any]]:
-    """Forecast used across the dashboard.
+def set_active_run(run_id: str) -> None:
+    """Makes ``run_id`` the forecast used on every page, for as long as the data stay as they are now."""
+    df = load_emissions_daily()
+    st.session_state["active_run_id"] = run_id
+    st.session_state["active_run_through"] = str(df["date"].max().date()) if not df.empty else None
 
-    Order of preference: the run chosen on the Forecast page (session), then the
-    latest run of the model the router would pick for the full history, then the
-    latest run overall.
+
+def pick_active_run(runs: pd.DataFrame, last: pd.Timestamp | None, preferred: str,
+                    chosen: str | None = None, chosen_through: str | None = None) -> dict[str, Any]:
+    """Which stored run the dashboard shows (pure, for the tests).
+
+    1. The run picked on the Forecast page, while the data are the ones it was picked on (or if it is current).
+       After new data arrive, an older pick no longer applies.
+    2. Otherwise the latest run of the router's model among the runs trained up to the last observed day,
+       then any such run; when none is current, the latest run overall.
+    ``stale`` is True when the run was not trained up to the last observed day: its first forecast days then
+    overlap days that now have real data. ``has_current`` tells whether a run trained up to that day exists.
     """
+    ends = pd.to_datetime(runs["end_date"])
+    aligned = runs[ends == last] if last is not None else runs.iloc[0:0]
+    if chosen and chosen in set(runs["run_id"]):
+        row = runs[runs["run_id"] == chosen].iloc[0]
+        same_data = last is not None and chosen_through == str(pd.Timestamp(last).date())
+        if same_data or chosen in set(aligned["run_id"]):
+            meta = row.to_dict()
+            meta["stale"] = last is not None and pd.Timestamp(meta["end_date"]) != last
+            meta["has_current"] = not aligned.empty
+            return meta
+    pool = aligned if not aligned.empty else runs
+    pref_runs = pool[pool["model_name"] == preferred]
+    meta = (pref_runs.iloc[0] if not pref_runs.empty else pool.iloc[0]).to_dict()
+    meta["stale"] = aligned.empty
+    meta["has_current"] = not aligned.empty
+    return meta
+
+
+def load_active_forecast() -> tuple[pd.DataFrame, dict[str, Any]]:
+    """Forecast used across the dashboard (see ``pick_active_run``). ``meta`` also carries ``data_through``."""
     runs = load_forecast_runs()
     if runs.empty:
         return pd.DataFrame(), {}
-
-    chosen = st.session_state.get("active_run_id")
-    if chosen and chosen in set(runs["run_id"]):
-        meta = runs[runs["run_id"] == chosen].iloc[0].to_dict()
-        return load_forecast_by_run(chosen), meta
 
     from carbonsync.models.router import choose_model
 
     cfg = load_config()
     df = load_emissions_daily()
-    preferred = choose_model(len(df), cfg)
-
-    # Only runs trained up to the latest observed day are current
     last = df["date"].max() if not df.empty else None
-    aligned = runs[pd.to_datetime(runs["end_date"]) == last] if last is not None else runs.iloc[0:0]
-    pool = aligned if not aligned.empty else runs
-    pref_runs = pool[pool["model_name"] == preferred]
-    meta = (pref_runs.iloc[0] if not pref_runs.empty else pool.iloc[0]).to_dict()
-    meta["stale"] = aligned.empty
+    meta = pick_active_run(runs, last, choose_model(len(df), cfg), st.session_state.get("active_run_id"),
+                           st.session_state.get("active_run_through"))
+    meta["data_through"] = last
     return load_forecast_by_run(str(meta["run_id"])), meta
 
 
@@ -319,7 +341,7 @@ def load_department_status() -> pd.DataFrame:
               "logistique": "raw_logistics", "dechets_eau": "raw_waste_water"}
     if not db_path.exists():
         return pd.DataFrame()
-    conn = duckdb.connect(str(db_path), read_only=True)
+    conn = db_connect(str(db_path), read_only=True)
     frames = []
     try:
         for dept, table in tables.items():
@@ -350,7 +372,7 @@ def load_department_last_dates() -> dict[str, pd.Timestamp | None]:
     db_path = get_duckdb_path()
     if not db_path.exists():
         return out
-    conn = duckdb.connect(str(db_path), read_only=True)
+    conn = db_connect(str(db_path), read_only=True)
     try:
         for dept, table in tables.items():
             try:

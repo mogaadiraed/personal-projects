@@ -67,7 +67,18 @@ department CSVs ──► data/inbox/ ──► run_pipeline() ──► data/ca
 whole folder. `ingest/intake.py` does the work: `expand_archive()` unpacks a zip, `inspect_upload()` recognises the
 department from the file-name prefix (`energie_`, `production_`, `logistique_`, `dechets_eau_`) or from the columns,
 and `save_uploads()` writes the files to `data/inbox/` with a manifest so the upload can be undone. The page then calls
-`run_pipeline(trigger="upload")` and streams its log live. A month reported by only some departments waits until all of them have sent it. Try it with `samples/2026-Q2.zip` (April–June 2026).
+`run_pipeline(trigger="upload")` and streams its log live. A month reported by only some departments waits until all of them have sent it. Try it with `samples/2026-Q2.zip` (April–June 2026), then `samples/2026-Q3.zip`.
+
+**Background runs.** `app/core/jobs.py` runs the pipeline in its own thread (one run at a time), so leaving the
+page or reloading it does not stop it halfway; any page can show its live log, and the caches are cleared when it
+ends. Because the pages keep reading the database while the pipeline writes it, every connection goes through
+`src/carbonsync/db.py` → `connect()`: inside the dashboard all connections use one access mode (DuckDB refuses a
+read-only and a read-write connection to the same file in one process). On the command line nothing changes.
+
+**Stale forecast.** `app/data/loader.py` → `pick_active_run()` flags a forecast that was not trained up to the last
+observed day. The Overview and Forecast pages then show a warning with **Update the forecast**, and the Overview
+never draws forecast days over days that already have real data. A run picked by hand on the Forecast page stays
+active only while the data are those it was picked on.
 
 ## 4. The AI assistant
 
@@ -115,6 +126,6 @@ validation step has something to do. The first quarter of 2026 in `data/inbox/` 
 
 ## 7. Tests
 
-`tests/` holds about 330 pytest tests (pipeline, models, budget, inventory, alerts, login, assistant tools and
+`tests/` holds about 340 pytest tests (pipeline, models, budget, inventory, alerts, login, assistant tools and
 privacy, every page rendered with Streamlit's AppTest). Run them after building the data:
 `python -m pytest -o pythonpath="src ." tests/ -q`.

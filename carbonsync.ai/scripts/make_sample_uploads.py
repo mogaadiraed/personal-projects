@@ -5,6 +5,7 @@ extended period, and only the new months are written out:
 
     samples/2026-Q1.zip            12 clean files (Jan–Mar 2026, 4 departments) in one archive
     samples/2026-Q2.zip            next quarter: 12 clean files (Apr–Jun 2026)
+    samples/2026-Q3.zip            the quarter after: 12 clean files (Jul–Sep 2026)
     samples/2026-04_mixed/         April: French-format energy file (auto-repaired),
                                    two clean files, one production file with a missing column
     samples/2026-04_correction/    the corrected production file for April
@@ -65,15 +66,17 @@ def _clean(path: Path) -> pd.DataFrame:
 def main() -> None:
     # The generator's noise depends on the series length, so each pack keeps the run it was first made
     # with: Q1 / April from a run ending 2026-04-30 (files already uploaded stay identical),
-    # Q2 from a run ending 2026-06-30.
+    # Q2 from a run ending 2026-06-30, Q3 from a run ending 2026-09-30.
     inbox = _generate("2026-04-30", "a")
     inbox_q2 = _generate("2026-06-30", "b")
+    inbox_q3 = _generate("2026-09-30", "c")
     if OUT.exists():
         shutil.rmtree(OUT)
 
     # --- Quarters: clean files, one per department and month ------------------
     for quarter, months, src in (("2026-Q1", ("2026-01", "2026-02", "2026-03"), inbox),
-                                 ("2026-Q2", ("2026-04", "2026-05", "2026-06"), inbox_q2)):
+                                 ("2026-Q2", ("2026-04", "2026-05", "2026-06"), inbox_q2),
+                                 ("2026-Q3", ("2026-07", "2026-08", "2026-09"), inbox_q3)):
         folder = OUT / quarter
         folder.mkdir(parents=True)
         for month in months:

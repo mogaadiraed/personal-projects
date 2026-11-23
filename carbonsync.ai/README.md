@@ -53,10 +53,10 @@ institute.
 
 | Included | Not included (created on your PC) |
 |---|---|
-| The code (`app/`, `src/`), 334 tests, the documents above | `data/carbonsync.duckdb` and the reports: built by the pipeline (Quick start) |
+| The code (`app/`, `src/`), 341 tests, the documents above | `data/carbonsync.duckdb` and the reports: built by the pipeline (Quick start) |
 | `data/inbox/`: 399 raw monthly CSV exports from 4 departments, Jan 2018 – Mar 2026, about 10 % with realistic defects | User accounts: the first start asks you to create the administrator |
 | `data/truth/`: the clean ground truth the generator started from | API keys: kept in your operating system's credential store, never in the project |
-| `samples/`: ready-to-upload files (Q1 and Q2 2026 zips, April test files) | Assistant conversations and usage (`data/assistant/`) |
+| `samples/`: ready-to-upload files (Q1, Q2 and Q3 2026 zips, April test files) | Assistant conversations and usage (`data/assistant/`) |
 
 ## Quick start
 
@@ -200,6 +200,9 @@ estimated cost and what was sent.
 save to `data/inbox/` → validate & repair → DuckDB → daily emissions → forecast with the router
 (**Chronos-2 from 60 days of history, otherwise Prophet**) → backtest refresh → alerts check → Excel and PDF
 reports. Every page then shows the new data.
+The run happens in the background: you can leave the page, it carries on and every page updates when it ends.
+If the forecast is ever older than the data (a run stopped halfway), the Overview and Forecast pages say so
+and offer **Update the forecast**; the Overview never draws forecast days over days that have real data.
 A month reported by only some departments waits until all of them have sent it (shown as *Waiting*).
 **Back to the original data** removes all uploads and restores any replaced file.
 
@@ -211,6 +214,7 @@ Ready-made files to try it: `samples/` (regenerate with `python scripts/make_sam
 | `samples/2026-04_mixed/` | April: French-format energy file, clean logistics & waste, production file missing a column | energy repaired, production quarantined, April *waiting* |
 | `samples/2026-04_correction/` | corrected April production file | April complete once waste & water is also there |
 | `samples/2026-Q2.zip` | Apr–Jun 2026, 4 departments (12 CSVs), continues Q1 | +91 days, data through 30 Jun 2026, new Chronos-2 forecast |
+| `samples/2026-Q3.zip` | Jul–Sep 2026, 4 departments (12 CSVs), continues Q2 (August holiday shutdown) | +92 days, data through 30 Sep 2026, new Chronos-2 forecast |
 
 Command line equivalent: `python -m carbonsync.pipeline` (options `--no-forecast`, `--no-report`, `--no-backtest`,
 `--backtest` to force it). Alerts only: `python -m carbonsync.alerts`.
@@ -275,7 +279,7 @@ ruff check src/ app/ tests/
 ```
 
 Build the data first (Quick start). `test_backtest_duckdb_records_populated` also needs the rolling backtest in the
-database: run `python -m carbonsync.pipeline --backtest` once, otherwise that one test fails (333 of 334 pass).
+database: run `python -m carbonsync.pipeline --backtest` once, otherwise that one test fails (340 of 341 pass).
 
 ## Structure
 
@@ -307,7 +311,7 @@ carbonsync.ai/
 │   ├── ingest/intake.py  #   Upload detection, saving, undo
 │   └── models/lab.py     #   Model lab experiments
 ├── scripts/              # make_sample_uploads.py, stop_dashboard.ps1 (used by stop.bat)
-├── samples/              # Ready-to-upload department CSVs (2026): Q1 / Q2 zips, April test files
+├── samples/              # Ready-to-upload department CSVs (2026): Q1 / Q2 / Q3 zips, April test files
 ├── tests/                # Pytest suite
 ├── docs/                 # Thesis (PDF), ARCHITECTURE.md, CARBONSYNC_REPORT.md (full project report)
 │   ├── assistant/        # Dashboard guide the assistant searches (FR / EN) and the expert brief

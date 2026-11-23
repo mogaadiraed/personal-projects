@@ -18,11 +18,11 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import duckdb
 import numpy as np
 import pandas as pd
 import yaml
 
+from carbonsync.db import connect as db_connect
 from carbonsync.models.chronos_model import ChronosForecaster
 from carbonsync.models.prophet_model import ProphetForecaster
 from carbonsync.models.router import (  # noqa: F401 - re-exported for older imports
@@ -111,7 +111,7 @@ def run_and_save_forecast(
 
     db_path = root / cfg.get("paths", {}).get("duckdb", "data/carbonsync.duckdb")
 
-    conn = duckdb.connect(str(db_path))
+    conn = db_connect(str(db_path))
     df_emissions = conn.execute("SELECT * FROM emissions_daily ORDER BY date").fetchdf()
 
     if len(df_emissions) == 0:

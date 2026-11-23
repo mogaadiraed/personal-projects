@@ -106,6 +106,9 @@ def _navigation(look: dict, role: str = "admin", alerts_open: int = 0) -> tuple[
 
 
 def main() -> None:
+    from carbonsync import db
+
+    db.shared_process()                  # the pages read while a background pipeline writes (app/core/jobs.py)
     cfg = load_config()
     look = appearance.settings(cfg)
     appearance.sync_theme(look)          # .streamlit/config.toml follows the Settings (applied live)

@@ -95,7 +95,7 @@ Après dépôt, le **pipeline complet** se relance : validation → chargement �
 
 Autres actions : **Modèle CSV** (télécharger un gabarit par service), **Relancer sans nouveau fichier**, interrupteur « Générer le rapport Excel », **Historique du pipeline**, **Couverture par service** (18 derniers mois), **Revenir aux données d'origine** (supprime les fichiers déposés et restaure les originaux, avec confirmation).
 
-Fichiers d'exemple prêts à déposer : dossier `samples/` du projet (`2026-Q1.zip` déjà déposé, `2026-Q2.zip` = avril–juin 2026).
+Fichiers d'exemple prêts à déposer : dossier `samples/` du projet (`2026-Q1.zip` déjà déposé, `2026-Q2.zip` = avril–juin 2026, `2026-Q3.zip` = juillet–septembre 2026).
 
 ## Qualité des données
 <!-- keywords: qualité, quarantaine, rejet, rejeté, accepté, corrigé, imputé, imputation, confiance, schéma, colonnes, erreur, fichier -->

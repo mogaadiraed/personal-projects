@@ -21,12 +21,12 @@ import logging
 from pathlib import Path
 from typing import Any
 
-import duckdb
 import numpy as np
 import pandas as pd
 import yaml
 
 from carbonsync.backtest.metrics import evaluate_forecast
+from carbonsync.db import connect as db_connect
 from carbonsync.models.chronos_model import ChronosForecaster
 from carbonsync.models.prophet_model import ProphetForecaster
 
@@ -59,7 +59,7 @@ def run_rolling_backtest(
     db_path = root / cfg.get("paths", {}).get("duckdb", "data/carbonsync.duckdb")
     truth_path = root / cfg.get("paths", {}).get("truth", "data/truth") / "truth.parquet"
 
-    conn = duckdb.connect(str(db_path))
+    conn = db_connect(str(db_path))
     df_daily = conn.execute("SELECT * FROM emissions_daily ORDER BY date").fetchdf()
     df_daily["date"] = pd.to_datetime(df_daily["date"])
 

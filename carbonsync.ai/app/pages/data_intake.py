@@ -1,6 +1,7 @@
 """Data intake – drop department CSVs (per department, many at once, a folder or a .zip) and rerun the whole loop.
 
-Loop: save to inbox → validate & repair → DuckDB → daily emissions → router forecast
+Loop (in the background, app/core/jobs.py, so leaving the page does not stop it): save to inbox → validate &
+repair → DuckDB → daily emissions → router forecast
 (Chronos-2 from 60 days of history, otherwise Prophet) → backtest refresh → alerts → reports →
 every page refreshes. Editors can upload; going back to the original data needs an administrator.
 """
@@ -11,7 +12,7 @@ import re
 import pandas as pd
 import streamlit as st
 
-from app.core import auth
+from app.core import auth, jobs
 from app.core.i18n import tr
 from app.data.loader import (
     clear_caches,
@@ -20,6 +21,7 @@ from app.data.loader import (
     load_department_status,
     load_emissions_daily,
     load_quarantine_details,
+    set_active_run,
 )
 from app.ui import charts, lab_charts
 from app.ui import components as ui
@@ -170,11 +172,12 @@ def _actions(items: list, intake) -> None:
         go = st.button(
             tr(f"Intégrer {len(ok)} fichier(s) et relancer le pipeline", f"Ingest {len(ok)} file(s) and rerun the pipeline")
             if ok else tr("Déposez des fichiers pour commencer", "Drop files to start"),
-            type="primary", icon=":material/play_arrow:", width="stretch", disabled=not ok, key="intake_go",
+            type="primary", icon=":material/play_arrow:", width="stretch", disabled=not ok or jobs.running(),
+            key="intake_go",
         )
     with c2:
         rerun = st.button(tr("Relancer sans nouveau fichier", "Rerun without new files"), icon=":material/refresh:",
-                          width="stretch", key="intake_rerun")
+                          width="stretch", key="intake_rerun", disabled=jobs.running())
     with c3:
         report = st.toggle(tr("Générer le rapport Excel", "Generate the Excel report"), value=True, key="intake_report")
     if go or rerun:
@@ -182,30 +185,39 @@ def _actions(items: list, intake) -> None:
 
 
 def _run_pipeline(intake, items: list, report: bool, trigger: str) -> None:
-    from carbonsync.pipeline import run_pipeline
-
-    try:
-        with ui.live_log(tr("Pipeline en cours…", "Pipeline running…"), tr("Pipeline terminé", "Pipeline complete")):
-            who = auth.current()
-            saved = intake.save_uploads(items, uploaded_by=None if who.get("local") else who["username"]) if items else []
-            summary = run_pipeline(forecast=True, report=report, trigger=trigger)
-    except Exception as exc:  # noqa: BLE001 - shown to the user
-        st.error(f"{type(exc).__name__}: {exc}")
+    """Starts the run in the background (app/core/jobs.py): leaving the page no longer stops it halfway."""
+    who = auth.current()
+    by = None if who.get("local") else who["username"]
+    started = jobs.start_pipeline(
+        trigger, tr("Pipeline en cours…", "Pipeline running…"), report=report,
+        before=(lambda: intake.save_uploads(items, uploaded_by=by)) if items else None,
+    )
+    if not started:
+        st.warning(tr("Un calcul est déjà en cours : attendez sa fin.", "A run is already in progress: wait for it to end."))
         return
-    clear_caches()
-    fc = summary["steps"].get("forecast")
-    if fc:
-        st.session_state["active_run_id"] = fc["run_id"]
-    summary["saved"] = saved
-    st.session_state["intake_result"] = summary
     st.session_state["intake_nonce"] = st.session_state.get("intake_nonce", 0) + 1  # empties the drop zones
     st.rerun()
 
 
 def _last_result() -> None:
-    res = st.session_state.pop("intake_result", None)
-    if not res:
+    """Live log while a run is going; once it ends, its result (shown once per session, for 30 minutes)."""
+    ui.job_watch()
+    job = jobs.snapshot()
+    if not job or job.get("running") or st.session_state.get("job_seen") == job.get("id"):
         return
+    finished = pd.Timestamp(job.get("finished_at") or job["started_at"])
+    if pd.Timestamp.now() - finished > pd.Timedelta(minutes=30):
+        return
+    st.session_state["job_seen"] = job["id"]
+    if job.get("error"):
+        ui.status_banner("red", job["error"], tr("Pipeline interrompu", "Pipeline failed"))
+        return
+    clear_caches()
+    res = job["summary"]
+    if res.get("trigger") == "reset":
+        st.session_state.pop("active_run_id", None)
+    elif (fc_step := res["steps"].get("forecast")):
+        set_active_run(fc_step["run_id"])
     before, after = res["before"], res["after"]
     fc = res["steps"].get("forecast", {})
     v = res["steps"]["validate"]
@@ -257,20 +269,14 @@ def _reset(intake, n: int) -> None:
         st.caption(tr(f"Supprime les {n} fichier(s) déposé(s), restaure les originaux remplacés et relance le pipeline.",
                       f"Removes the {n} uploaded file(s), restores replaced originals and reruns the pipeline."))
         if st.button(tr("Confirmer", "Confirm"), type="primary", key="intake_reset", width="stretch",
-                     disabled=not auth.can("reset_data"),
+                     disabled=not auth.can("reset_data") or jobs.running(),
                      help=None if auth.can("reset_data") else auth.need("reset_data")):
-            from carbonsync.pipeline import run_pipeline
+            def remove() -> list[str]:
+                intake.remove_uploads()
+                return []
 
-            try:
-                with ui.live_log(tr("Réinitialisation…", "Resetting…"), tr("Données d'origine restaurées", "Original data restored")):
-                    intake.remove_uploads()
-                    summary = run_pipeline(forecast=True, report=False, trigger="reset")
-            except Exception as exc:  # noqa: BLE001
-                st.error(f"{type(exc).__name__}: {exc}")
+            if not jobs.start_pipeline("reset", tr("Réinitialisation…", "Resetting…"), report=False, before=remove):
+                st.warning(tr("Un calcul est déjà en cours : attendez sa fin.", "A run is already in progress: wait for it to end."))
                 return
-            clear_caches()
-            st.session_state.pop("active_run_id", None)
-            summary["saved"] = []
-            st.session_state["intake_result"] = summary
             st.session_state["intake_nonce"] = st.session_state.get("intake_nonce", 0) + 1
             st.rerun()

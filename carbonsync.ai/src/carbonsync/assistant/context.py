@@ -10,10 +10,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-import duckdb
 import pandas as pd
 import yaml
 
+from carbonsync.db import connect as db_connect
 from carbonsync.export.insights import _pick_run, build_insights
 from carbonsync.obs import get_logger
 
@@ -71,7 +71,7 @@ class DataContext:
 
 
 def _read_forecast(db_path: Path, run_id: str) -> pd.DataFrame:
-    conn = duckdb.connect(str(db_path), read_only=True)
+    conn = db_connect(str(db_path), read_only=True)
     try:
         fc = conn.execute("SELECT date, horizon, yhat, lo90, hi90 FROM forecasts WHERE run_id = ? ORDER BY horizon",
                           [run_id]).fetchdf()
@@ -91,7 +91,7 @@ def load_context(run_id: str | None = None, config_path: Path | None = None) -> 
     with _LOCK:
         if key in _CACHE:
             return _CACHE[key]
-        conn = duckdb.connect(str(db_path), read_only=True)
+        conn = db_connect(str(db_path), read_only=True)
         try:
             df = conn.execute("SELECT * FROM emissions_daily ORDER BY date").fetchdf()
             runs = conn.execute("SELECT * FROM forecast_runs ORDER BY created_at DESC").fetchdf()

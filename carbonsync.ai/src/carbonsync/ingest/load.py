@@ -20,10 +20,10 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import duckdb
 import pandas as pd
 import yaml
 
+from carbonsync.db import connect as db_connect
 from carbonsync.obs import get_logger
 
 log = get_logger(__name__)
@@ -58,7 +58,7 @@ def load_processed_to_duckdb(config_path: Path | None = None) -> dict[str, Any]:
     db_path = get_duckdb_path(cfg)
 
     # Connect to DuckDB database file
-    conn = duckdb.connect(str(db_path))
+    conn = db_connect(str(db_path))
 
     dept_table_map = {
         "energie": "raw_energy",

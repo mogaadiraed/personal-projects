@@ -7,6 +7,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from html import escape
 
+import pandas as pd
 import streamlit as st
 
 from app.core.i18n import lang, tr
@@ -211,6 +212,66 @@ def live_log(label: str, done_label: str, max_lines: int = 60) -> Iterator[list[
         status.update(label=f"{type(exc).__name__}: {exc}", state="error", expanded=True)
         raise
     status.update(label=done_label, state="complete", expanded=False)
+
+
+def job_watch() -> None:
+    """While a background pipeline runs: its live log, refreshed every second. The page reloads when it ends."""
+    from app.core import jobs
+
+    if not jobs.running():
+        return
+
+    @st.fragment(run_every=1.0)
+    def _watch() -> None:
+        job = jobs.snapshot()
+        if not job.get("running"):
+            st.rerun(scope="app")          # the run is over: every figure on the page is re-read
+        status = st.status(job.get("step") or job.get("label") or tr("Pipeline en cours…", "Pipeline running…"),
+                           expanded=True, state="running")
+        lines = job.get("lines", [])[-60:]
+        if lines:
+            status.code("\n".join(lines), language=None, height=min(22 * len(lines) + 40, 420))
+        status.caption(tr("Vous pouvez changer de page : le calcul continue et les pages se mettent à jour à la fin.",
+                          "You can switch pages: the run carries on and every page updates when it ends."))
+
+    _watch()
+
+
+def forecast_freshness(run: dict, key: str) -> None:
+    """Warns when the forecast shown was not made from the latest data (its first days would overlap real
+    data), with a button that reruns the pipeline in the background. Shows the live run while one is going."""
+    from app.core import auth, jobs
+    from app.ui.format import date_label
+
+    if jobs.running():
+        job_watch()
+        return
+    if not run or not run.get("stale") or run.get("data_through") is None:
+        return
+    end, last = pd.Timestamp(run["end_date"]), pd.Timestamp(run["data_through"])
+    if run.get("has_current"):     # an older run picked by hand on the Forecast page
+        status_banner("amber", tr(
+            f"Prévision plus ancienne, choisie sur la page Prévisions : calculée sur les données jusqu'au "
+            f"{date_label(end)}. La prévision à jour part du {date_label(last + pd.Timedelta(days=1))}.",
+            f"Older forecast, picked on the Forecast page: made from data up to {date_label(end)}. "
+            f"The current forecast starts on {date_label(last + pd.Timedelta(days=1))}.",
+        ), tr("Prévision ancienne", "Older forecast"))
+        return
+    status_banner("amber", tr(
+        f"La prévision a été calculée sur les données jusqu'au {date_label(end)}, mais les données vont "
+        f"maintenant jusqu'au {date_label(last)} : elle n'a pas été recalculée depuis. "
+        "Mettez-la à jour pour prévoir à partir du jour suivant.",
+        f"The forecast was made from data up to {date_label(end)}, but the data now run to {date_label(last)}: "
+        "it has not been recomputed since. Update it to forecast from the next day.",
+    ), tr("Prévision à mettre à jour", "Forecast out of date"))
+    if auth.can("pipeline"):
+        if st.button(tr("Mettre à jour la prévision", "Update the forecast"), type="primary",
+                     icon=":material/refresh:", key=f"fresh_{key}"):
+            jobs.start_pipeline("manual", tr("Mise à jour de la prévision…", "Updating the forecast…"))
+            st.rerun()
+    else:
+        st.caption(tr("Un éditeur ou un administrateur peut la mettre à jour.",
+                      "An editor or an administrator can update it."))
 
 
 def chip_row(chips: list[tuple[str, str]]) -> None:

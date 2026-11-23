@@ -26,6 +26,7 @@ import duckdb
 import pandas as pd
 import yaml
 
+from carbonsync.db import connect as db_connect
 from carbonsync.obs import get_logger
 
 log = get_logger(__name__)
@@ -237,7 +238,7 @@ def evaluate(root: Path | None = None, cfg: dict[str, Any] | None = None,
     s = settings(cfg)
     today = today or date.today()
     db = root / cfg.get("paths", {}).get("duckdb", "data/carbonsync.duckdb")
-    con = duckdb.connect(str(db), read_only=True)
+    con = db_connect(str(db), read_only=True)
     try:
         df = con.execute("SELECT * FROM emissions_daily ORDER BY date").fetchdf()
         runs = con.execute("SELECT * FROM forecast_runs ORDER BY created_at DESC").fetchdf()
@@ -301,7 +302,7 @@ def band(root: Path | None = None, cfg: dict[str, Any] | None = None) -> pd.Data
     cfg = cfg if cfg is not None else yaml.safe_load((root / "config.yaml").read_text(encoding="utf-8"))
     s = settings(cfg)
     db = root / cfg.get("paths", {}).get("duckdb", "data/carbonsync.duckdb")
-    con = duckdb.connect(str(db), read_only=True)
+    con = db_connect(str(db), read_only=True)
     try:
         df = con.execute("SELECT date, co2e_total_t FROM emissions_daily ORDER BY date").fetchdf()
         if df.empty:

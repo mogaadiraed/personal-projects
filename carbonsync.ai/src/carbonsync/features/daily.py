@@ -17,11 +17,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-import duckdb
 import numpy as np
 import pandas as pd
 import yaml
 
+from carbonsync.db import connect as db_connect
 from carbonsync.obs import get_logger
 
 log = get_logger(__name__)
@@ -60,7 +60,7 @@ def build_daily_features(config_path: Path | None = None) -> dict[str, Any]:
     ef_waste = float(ef_cfg.get("waste_kgco2_per_kg", 0.50))
     ef_water = float(ef_cfg.get("water_kgco2_per_m3", 0.30))
 
-    conn = duckdb.connect(str(db_path))
+    conn = db_connect(str(db_path))
 
     # 1. Fetch raw data from DuckDB tables
     df_energy = conn.execute("SELECT date, electricity_kwh, fuel_oil_l FROM raw_energy ORDER BY date").fetchdf()

@@ -13,6 +13,7 @@ from app.data.loader import (
     load_forecast_by_run,
     load_forecast_runs,
     load_latest_runs_by_model,
+    set_active_run,
 )
 from app.ui import charts
 from app.ui import components as ui
@@ -42,6 +43,7 @@ def render() -> None:
         tr("Horizon de 183 jours avec intervalle de confiance à 90 %.", "183-day horizon with a 90% confidence interval."),
         ui.data_chips(date_label(df["date"].max()), demo, charts.MODEL_NAMES.get(run["model_name"], run["model_name"])),
     )
+    ui.forecast_freshness(run, key="fc")
 
     # ---- Controls --------------------------------------------------------------
     c1, c2, _ = st.columns([2.2, 1, 1.4], vertical_alignment="bottom")
@@ -54,7 +56,7 @@ def render() -> None:
             help=tr("Utilisée sur toutes les pages.", "Used on every page."),
         )
         if picked != run["run_id"]:
-            st.session_state["active_run_id"] = picked
+            set_active_run(picked)
             st.rerun()
     with c2:
         weekly = st.segmented_control(
@@ -160,6 +162,6 @@ def _run_model_form() -> None:
                     st.error(f"{type(exc).__name__}: {exc}")
                     return
             st.cache_data.clear()
-            st.session_state["active_run_id"] = res["run_id"]
+            set_active_run(res["run_id"])
             st.toast(tr("Prévision enregistrée.", "Forecast saved."), icon=":material/check:")
             st.rerun()
