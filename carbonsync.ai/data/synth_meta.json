@@ -1,0 +1,29 @@
+{
+  "seed": 42,
+  "start_date": "2018-01-01",
+  "end_date": "2025-12-31",
+  "total_days": 2922,
+  "total_months": 96,
+  "total_inbox_files": 384,
+  "departments": [
+    "energie",
+    "production",
+    "logistique",
+    "dechets_eau"
+  ],
+  "regime_shifts": {
+    "solar_contract": {
+      "date": "2021-06-01",
+      "electricity_reduction": 0.15
+    },
+    "efficiency_plan": {
+      "date": "2023-03-01",
+      "electricity_reduction": 0.08,
+      "fuel_reduction": 0.04
+    }
+  },
+  "breakdowns_count": 48,
+  "missing_rate": 0.015,
+  "outlier_rate": 0.003,
+  "truth_file": "data\\truth\\truth.parquet"
+}

@@ -1,0 +1,219 @@
+[
+  {
+    "file": "production_2018-01.csv",
+    "defect": "missing_column",
+    "dropped_column": "units_produced",
+    "quarantine_expected": true
+  },
+  {
+    "file": "dechets_eau_2018-05.csv",
+    "defect": "missing_column",
+    "dropped_column": "waste_kg",
+    "quarantine_expected": true
+  },
+  {
+    "file": "production_2024-05.csv",
+    "defect": "missing_column",
+    "dropped_column": "shutdown_flag",
+    "quarantine_expected": true
+  },
+  {
+    "file": "logistique_2019-07.csv",
+    "defect": "missing_column",
+    "dropped_column": "diesel_l",
+    "quarantine_expected": true
+  },
+  {
+    "file": "energie_2022-04.csv",
+    "defect": "missing_column",
+    "dropped_column": "electricity_kwh",
+    "quarantine_expected": true
+  },
+  {
+    "file": "dechets_eau_2022-12.csv",
+    "defect": "missing_column",
+    "dropped_column": "waste_kg",
+    "quarantine_expected": true
+  },
+  {
+    "file": "logistique_2020-05.csv",
+    "defect": "missing_column",
+    "dropped_column": "diesel_l",
+    "quarantine_expected": true
+  },
+  {
+    "file": "dechets_eau_2025-12.csv",
+    "defect": "missing_column",
+    "dropped_column": "water_m3",
+    "quarantine_expected": true
+  },
+  {
+    "file": "energie_2021-02.csv",
+    "defect": "french_excel",
+    "quarantine_expected": false
+  },
+  {
+    "file": "energie_2021-06.csv",
+    "defect": "date_dmy",
+    "quarantine_expected": false
+  },
+  {
+    "file": "energie_2021-08.csv",
+    "defect": "encoding_latin1",
+    "quarantine_expected": false
+  },
+  {
+    "file": "energie_2022-03.csv",
+    "defect": "encoding_utf8_bom",
+    "quarantine_expected": false
+  },
+  {
+    "file": "logistique_2024-12.csv",
+    "defect": "duplicate_rows",
+    "quarantine_expected": false
+  },
+  {
+    "file": "dechets_eau_2019-08.csv",
+    "defect": "renamed_column",
+    "quarantine_expected": false,
+    "rename_applied": {
+      "waste_kg": "D\u00e9chets (kg)"
+    }
+  },
+  {
+    "file": "energie_2023-04.csv",
+    "defect": "unit_slip_mwh",
+    "quarantine_expected": false,
+    "unit_slip": "electricity_kwh / 1000"
+  },
+  {
+    "file": "dechets_eau_2020-09.csv",
+    "defect": "negative_value",
+    "quarantine_expected": false,
+    "negative_col": "waste_kg",
+    "negative_row": 7
+  },
+  {
+    "file": "dechets_eau_2021-04.csv",
+    "defect": "blank_lines_trailing_spaces",
+    "quarantine_expected": false
+  },
+  {
+    "file": "energie_2024-02.csv",
+    "defect": "late_correction",
+    "quarantine_expected": false,
+    "correction_file": "energie_2024-02_correction.csv"
+  },
+  {
+    "file": "energie_2024-05.csv",
+    "defect": "french_excel",
+    "quarantine_expected": false
+  },
+  {
+    "file": "energie_2024-10.csv",
+    "defect": "date_dmy",
+    "quarantine_expected": false
+  },
+  {
+    "file": "dechets_eau_2022-02.csv",
+    "defect": "encoding_latin1",
+    "quarantine_expected": false
+  },
+  {
+    "file": "energie_2024-12.csv",
+    "defect": "encoding_utf8_bom",
+    "quarantine_expected": false
+  },
+  {
+    "file": "production_2020-02.csv",
+    "defect": "duplicate_rows",
+    "quarantine_expected": false
+  },
+  {
+    "file": "energie_2025-08.csv",
+    "defect": "renamed_column",
+    "quarantine_expected": false,
+    "rename_applied": {
+      "electricity_kwh": "Electricit\u00e9 (kWh)"
+    }
+  },
+  {
+    "file": "logistique_2018-01.csv",
+    "defect": "unit_slip_mwh",
+    "quarantine_expected": false
+  },
+  {
+    "file": "logistique_2018-02.csv",
+    "defect": "negative_value",
+    "quarantine_expected": false,
+    "negative_col": "trips",
+    "negative_row": 7
+  },
+  {
+    "file": "logistique_2018-04.csv",
+    "defect": "blank_lines_trailing_spaces",
+    "quarantine_expected": false
+  },
+  {
+    "file": "production_2021-03.csv",
+    "defect": "late_correction",
+    "quarantine_expected": false,
+    "correction_file": "production_2021-03_correction.csv"
+  },
+  {
+    "file": "dechets_eau_2024-02.csv",
+    "defect": "french_excel",
+    "quarantine_expected": false
+  },
+  {
+    "file": "dechets_eau_2024-06.csv",
+    "defect": "date_dmy",
+    "quarantine_expected": false
+  },
+  {
+    "file": "production_2021-11.csv",
+    "defect": "encoding_latin1",
+    "quarantine_expected": false
+  },
+  {
+    "file": "production_2023-11.csv",
+    "defect": "encoding_utf8_bom",
+    "quarantine_expected": false
+  },
+  {
+    "file": "logistique_2021-03.csv",
+    "defect": "duplicate_rows",
+    "quarantine_expected": false
+  },
+  {
+    "file": "logistique_2021-06.csv",
+    "defect": "renamed_column",
+    "quarantine_expected": false,
+    "rename_applied": {
+      "trips": "Nombre de trajets"
+    }
+  },
+  {
+    "file": "logistique_2021-10.csv",
+    "defect": "unit_slip_mwh",
+    "quarantine_expected": false
+  },
+  {
+    "file": "production_2024-09.csv",
+    "defect": "negative_value",
+    "quarantine_expected": false,
+    "negative_col": "units_produced",
+    "negative_row": 7
+  },
+  {
+    "file": "energie_2019-08.csv",
+    "defect": "blank_lines_trailing_spaces",
+    "quarantine_expected": false
+  },
+  {
+    "file": "logistique_2023-02.csv",
+    "defect": "late_correction",
+    "quarantine_expected": false,
+    "correction_file": "logistique_2023-02_correction.csv"
+  }
+]

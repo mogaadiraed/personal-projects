@@ -1,0 +1,20 @@
+{
+  "total_files_scanned": 399,
+  "accepted_count": 387,
+  "rejected_count": 12,
+  "total_warnings": 397,
+  "rejected_files": [
+    "dechets_eau_2018-05.csv",
+    "dechets_eau_2022-12.csv",
+    "dechets_eau_2025-06.csv",
+    "dechets_eau_2025-12.csv",
+    "energie_2019-06.csv",
+    "energie_2022-04.csv",
+    "logistique_2018-10.csv",
+    "logistique_2019-07.csv",
+    "logistique_2020-03.csv",
+    "logistique_2020-05.csv",
+    "production_2018-01.csv",
+    "production_2024-05.csv"
+  ]
+}

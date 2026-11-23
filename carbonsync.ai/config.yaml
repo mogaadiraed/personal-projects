@@ -1,0 +1,323 @@
+emission_factors:
+  electricity_kgco2_per_kwh: 0.483
+  fuel_oil_kgco2_per_l: 2.68
+  diesel_kgco2_per_l: 2.68
+  waste_kgco2_per_kg: 0.5
+  water_kgco2_per_m3: 0.3
+scopes:
+  scope1:
+  - fuel_oil_l
+  - diesel_l
+  scope2:
+  - electricity_kwh
+  other:
+  - waste_kg
+  - water_m3
+generator:
+  seed: 42
+  start_date: '2018-01-01'
+  end_date: '2025-12-31'
+  solar_start: '2021-06-01'
+  solar_reduction: 0.15
+  efficiency_start: '2023-03-01'
+  efficiency_reduction: 0.08
+  base_production: 1000
+  annual_growth_rate: 0.03
+  weekend_factor: 0.35
+  seasonal_amplitude: 0.08
+  shutdown_aug_days: 14
+  random_breakdowns_per_year: 6
+  breakdown_duration_min: 1
+  breakdown_duration_max: 4
+  fixed_elec_load: 6000
+  elec_per_production_unit: 9
+  cooling_amplitude: 0.1
+  noise_std: 0.03
+  missing_rate: 0.015
+  outlier_rate: 0.003
+  messy_file_rate: 0.1
+  unusable_file_rate: 0.02
+router:
+  model: chronos
+  fallback: prophet
+  min_days: 60
+forecast:
+  prediction_length: 183
+  confidence_level: 0.9
+  chronos_model: amazon/chronos-2
+  chronos_device: cpu
+backtest:
+  min_history_months: 6
+  origin_step_days: 30
+  history_lengths_months:
+  - 6
+  - 12
+  - 24
+  horizon_days: 183
+  refresh_after_upload: true
+  max_origins: 12
+targets:
+  base_year: 2019
+  target_year: 2030
+  reduction_pct: 30
+  perimeter: Scope 1 + Scope 2 location-based + waste and water (daily total)
+  note: Straight-line path from the base year; the cap of each year is read on it.
+budget:
+  cap_source: path
+  weights_source: seasonal
+  weights_years: 3
+  annual_cap_tco2e: 3000
+  status_thresholds:
+    green_max_ratio: 1.0
+    amber_upper_bound: true
+  monthly_weights:
+    1: 0.083
+    2: 0.083
+    3: 0.083
+    4: 0.083
+    5: 0.083
+    6: 0.09
+    7: 0.09
+    8: 0.06
+    9: 0.083
+    10: 0.083
+    11: 0.083
+    12: 0.072
+scope2:
+  residual_mix_kgco2_per_kwh: 0.483
+  residual_mix_source: 'No published residual mix for Tunisia: the national grid average
+    is used as a proxy (GHG Protocol Scope 2 Guidance). Replace when the supplier
+    or a registry publishes one.'
+  instruments:
+  - name: Green tariff (example, disabled)
+    kind: green_tariff
+    start: '2027-01-01'
+    end: null
+    share_of_grid_kwh: 0.3
+    mwh_per_year: null
+    kgco2_per_kwh: 0.0
+    enabled: false
+scope3:
+  note: 'Screening assumptions: every value missing here falls back to the defaults
+    in src/carbonsync/inventory/scope3.py. Replace with purchase records and surveys.'
+  purchased_materials:
+  - name_fr: Cuivre (fils, bornes)
+    name_en: Copper (wire, terminals)
+    kg_per_unit: 0.5
+    kgco2_per_kg: 4.0
+    source: Order of magnitude of cradle-to-gate refined copper (ICA life-cycle inventory,
+      global average); replace with supplier product carbon footprints
+  - name_fr: PVC (isolants, gaines)
+    name_en: PVC (insulation, sleeves)
+    kg_per_unit: 0.3
+    kgco2_per_kg: 2.08
+    source: PlasticsEurope / ECVM eco-profile, suspension PVC, cradle-to-gate (2026
+      revision)
+  fuel_energy:
+    fuels_wtt_kgco2_per_l: 0.61
+    electricity_upstream_kgco2_per_kwh: 0.07
+    source: Well-to-tank of fuel oil and diesel (UK DESNZ conversion factors, order
+      of magnitude) and grid losses + upstream of generation (about 15 % of the grid
+      factor)
+  transport_inbound:
+    legs:
+    - mode: sea
+      km: 2500
+      kgco2_per_tkm: 0.016
+    - mode: road
+      km: 500
+      kgco2_per_tkm: 0.1
+    source: Purchased materials (mass above) by container ship then truck; DESNZ freight
+      factors, order of magnitude
+  transport_outbound:
+    kg_per_unit: 0.9
+    legs:
+    - mode: road
+      km: 500
+      kgco2_per_tkm: 0.1
+    - mode: sea
+      km: 2500
+      kgco2_per_tkm: 0.016
+    source: Finished harness with packaging, shipped to vehicle plants; DESNZ freight
+      factors, order of magnitude
+  commuting:
+    employees: 1000
+    round_trip_km: 30
+    attendance: 0.95
+    modes:
+    - mode_fr: Bus de l'entreprise
+      mode_en: Company bus
+      share: 0.7
+      kgco2_per_pkm: 0.03
+    - mode_fr: Voiture
+      mode_en: Car
+      share: 0.2
+      kgco2_per_pkm: 0.17
+    - mode_fr: Taxi collectif, autre
+      mode_en: Shared taxi, other
+      share: 0.1
+      kgco2_per_pkm: 0.1
+    source: Head count, distance and mode split are assumptions to replace with an
+      HR survey; per-passenger factors are DESNZ orders of magnitude
+  excluded:
+    2: No capital-expenditure data yet; estimate from the asset ledger (spend-based)
+      next year
+    6: No travel records; expected small for a production site
+    8: 'None: leased buildings and equipment are already in Scopes 1 and 2'
+    10: Harnesses are fitted into vehicles by the customer; no data, usually small
+      for this product
+    11: A harness uses no energy itself (indirect use-phase emissions are optional)
+    12: Recycled with the vehicle; expected small, not yet estimated
+    13: None
+    14: None
+    15: None
+breakdown:
+  note: 'Allocation keys: each energy carrier is split between items and zones; the
+    shares of a carrier total 1. Defaults in src/carbonsync/inventory/breakdown.py.'
+  zones:
+    P1:
+      fr: P1 Coupe
+      en: P1 Cutting
+      owner: Responsable P1
+    P2:
+      fr: P2 Préparation
+      en: P2 Preparation
+      owner: Responsable P2
+    P3:
+      fr: P3 Assemblage
+      en: P3 Assembly
+      owner: Responsable P3
+    UT:
+      fr: Utilités et bâtiments
+      en: Utilities and buildings
+      owner: Maintenance
+    LOG:
+      fr: Logistique
+      en: Logistics
+      owner: Responsable logistique
+  keys:
+    electricity_kwh:
+    - fr: Machines de coupe
+      en: Cutting machines
+      zone: P1
+      share: 0.18
+    - fr: Sertissage et préparation
+      en: Crimping and preparation
+      zone: P2
+      share: 0.14
+    - fr: Lignes d'assemblage et bancs de test
+      en: Assembly lines and test benches
+      zone: P3
+      share: 0.26
+    - fr: Air comprimé
+      en: Compressed air
+      zone: UT
+      share: 0.12
+    - fr: Climatisation et ventilation
+      en: Air conditioning and ventilation
+      zone: UT
+      share: 0.18
+    - fr: Éclairage et bureaux
+      en: Lighting and offices
+      zone: UT
+      share: 0.08
+    - fr: Entrepôt et quais
+      en: Warehouse and docks
+      zone: LOG
+      share: 0.04
+    fuel_oil_l:
+    - fr: Groupes électrogènes
+      en: Generators
+      zone: UT
+      share: 0.35
+    - fr: Chaudière (chauffage, eau chaude)
+      en: Boiler (heating, hot water)
+      zone: UT
+      share: 0.65
+    diesel_l:
+    - fr: Camions de livraison
+      en: Delivery trucks
+      zone: LOG
+      share: 0.75
+    - fr: Chariots élévateurs et navettes
+      en: Forklifts and site shuttles
+      zone: LOG
+      share: 0.25
+    waste_kg:
+    - fr: Chutes de cuivre et de câbles
+      en: Copper and cable scrap
+      zone: P1
+      share: 0.35
+    - fr: Chutes de PVC et de gaines
+      en: PVC and sleeve scrap
+      zone: P2
+      share: 0.2
+    - fr: Emballages
+      en: Packaging
+      zone: P3
+      share: 0.3
+    - fr: Déchets dangereux
+      en: Hazardous waste
+      zone: UT
+      share: 0.05
+    - fr: Déchets ménagers et cantine
+      en: General and canteen waste
+      zone: UT
+      share: 0.1
+    water_m3:
+    - fr: Sanitaires et cantine
+      en: Sanitary and canteen
+      zone: UT
+      share: 0.7
+    - fr: Refroidissement et process
+      en: Cooling and process
+      zone: UT
+      share: 0.3
+display:
+  number_locale: fr-FR
+  units:
+    emissions: tCO2e
+    intensity: tCO2e/day
+governance:
+  factors_review_date: '2026-01-01'
+  config_audit_log: data/config_history/
+paths:
+  inbox: data/inbox
+  quarantine: data/quarantine
+  processed: data/processed
+  truth: data/truth
+  duckdb: data/carbonsync.duckdb
+app:
+  title: CarbonSync AI
+  port: 8501
+  language: fr
+  data_mode: synthetic
+appearance:
+  palette: amber
+  custom_accent: '#1baf7a'
+  style: glass
+  mode: light
+  text_size: m
+  density: comfortable
+  corners: rounded
+  animations: true
+  animated_background: true
+layout:
+  start_page: overview
+  hidden_pages:
+  - methodology
+  assistant_button: true
+  assistant_side: right
+  page_width: standard
+  footer: true
+alerts:
+  stale_after_days: 45
+  anomaly_window_days: 90
+  router_margin_mase: 0.05
+  email:
+    enabled: false
+auth:
+  enabled: true
+  session_hours: 12
+  max_failed_logins: 5
+  lockout_minutes: 15

@@ -1,0 +1,46 @@
+# =============================================================================
+# CarbonSync AI – Python Dependencies
+# =============================================================================
+# Install: pip install -r requirements.txt
+# Pin exact versions after initial install with: pip freeze > requirements.lock
+
+# --- Core data ---
+pandas>=2.0
+numpy>=1.24
+duckdb>=0.9
+
+# --- Data quality ---
+pandera>=0.18
+
+# --- Forecasting models ---
+prophet>=1.1
+chronos-forecasting>=2.0
+scikit-learn>=1.3
+xgboost>=2.0
+
+# --- Uncertainty quantification (optional, for sklearn models) ---
+mapie>=0.8
+
+# --- Dashboard ---
+streamlit>=1.30
+plotly>=5.18
+
+# --- Assistant (local model client; Ollama itself: winget install Ollama.Ollama) ---
+ollama>=0.6
+# Expert mode: Claude API client, and the API key kept in the Windows Credential Manager
+anthropic>=2.11
+keyring>=25.0
+# OpenAI-compatible providers (OpenRouter's free models; OpenAI, Gemini, Mistral next)
+openai>=2
+
+# --- Export ---
+openpyxl>=3.1
+matplotlib>=3.8          # PDF brief and conversation export
+
+# --- Config ---
+pyyaml>=6.0
+
+# --- Quality & testing ---
+pytest>=7.4
+ruff>=0.1
+

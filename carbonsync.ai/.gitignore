@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Data: the raw synthetic exports (data/inbox/) and their ground truth (data/truth/) are tracked;
+# everything the pipeline builds from them is not.
+data/quarantine/
+data/processed/
+data/reports/
+data/*.duckdb
+data/*.duckdb.wal
+
+# Model caches
+.cache/
+huggingface/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Byte-compiled
+*.pyc
+
+# Distribution
+*.whl
+*.tar.gz
+
+
+# Tool caches & local audit trail
+.pytest_cache/
+.ruff_cache/
+data/config_history/
+data/uploads_backup/
+data/uploads_manifest.json
+data/pipeline_history.jsonl
+data/_sample_tmp/
+data/assistant/
+data/ui/
+data/auth/
+data/alerts.json

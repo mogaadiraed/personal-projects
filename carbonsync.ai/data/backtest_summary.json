@@ -1,0 +1,152 @@
+{
+  "meta": {
+    "commit": "ee5d288",
+    "date": "2026-11-21",
+    "computed_at": "2026-11-21T03:17:07",
+    "data_through": "2026-03-31",
+    "days": 3012,
+    "origins": [
+      "2019-12-22",
+      "2020-06-19",
+      "2020-12-16",
+      "2021-07-14",
+      "2022-01-10",
+      "2022-07-09",
+      "2023-02-04",
+      "2023-08-03",
+      "2024-01-30",
+      "2024-08-27",
+      "2025-02-23",
+      "2025-09-21"
+    ],
+    "evaluations": 177,
+    "seed": 42,
+    "protocol": "rolling origin, 12 cuts, history 6, 12, 24 months, 183-day horizon",
+    "target": "co2e_total_t",
+    "calibrated_against": "Tunisian industrial plant (synthetic benchmark)",
+    "conformal_method": "split-conformal with horizon buckets",
+    "note": "Recomputed on the data through 2026-03-31 with 12 origins. Mean MASE: chronos 0.889, ens_pc 0.885, prophet 1.052 (lowest: ens_pc)."
+  },
+  "results": [
+    {
+      "model_name": "chronos",
+      "history_months": 6,
+      "mae": 1.1597752172285958,
+      "mase": 0.9979765249649971,
+      "coverage": 0.8656648451730419,
+      "mean_width": 6.667866969369148
+    },
+    {
+      "model_name": "chronos",
+      "history_months": 12,
+      "mae": 1.088741398072373,
+      "mase": 0.926117730179764,
+      "coverage": 0.9180327868852459,
+      "mean_width": 6.001393249777497
+    },
+    {
+      "model_name": "chronos",
+      "history_months": 24,
+      "mae": 0.9189028080038685,
+      "mase": 0.7432178734463459,
+      "coverage": 0.9116575591985429,
+      "mean_width": 5.216515123735577
+    },
+    {
+      "model_name": "ens_pc",
+      "history_months": 6,
+      "mae": 1.1943979711978108,
+      "mase": 1.0043029573058095,
+      "coverage": 0.9289617486338798,
+      "mean_width": 6.2337135516871
+    },
+    {
+      "model_name": "ens_pc",
+      "history_months": 12,
+      "mae": 1.0573874250013333,
+      "mase": 0.9065835666744126,
+      "coverage": 0.9394353369763205,
+      "mean_width": 6.102449811224454
+    },
+    {
+      "model_name": "ens_pc",
+      "history_months": 24,
+      "mae": 0.923023329391234,
+      "mase": 0.7448465056360956,
+      "coverage": 0.9503642987249544,
+      "mean_width": 6.040511548827563
+    },
+    {
+      "model_name": "oracle",
+      "history_months": 6,
+      "mae": 0.16254942871336314,
+      "mase": 0.13776805092125233,
+      "coverage": 0.9557873820168902,
+      "mean_width": 1.8991020622417862
+    },
+    {
+      "model_name": "oracle",
+      "history_months": 12,
+      "mae": 0.16254942871336314,
+      "mase": 0.14172000168644658,
+      "coverage": 0.9557873820168902,
+      "mean_width": 1.8991020622417862
+    },
+    {
+      "model_name": "oracle",
+      "history_months": 24,
+      "mae": 0.16254942871336314,
+      "mase": 0.13156621930124318,
+      "coverage": 0.9557873820168902,
+      "mean_width": 1.8991020622417862
+    },
+    {
+      "model_name": "prophet",
+      "history_months": 6,
+      "mae": 1.4412759135278455,
+      "mase": 1.1797220100526087,
+      "coverage": 0.883424408014572,
+      "mean_width": 5.799560134005053
+    },
+    {
+      "model_name": "prophet",
+      "history_months": 12,
+      "mae": 1.2404199926668351,
+      "mase": 1.0650164272405755,
+      "coverage": 0.9275956284153005,
+      "mean_width": 6.203506372671409
+    },
+    {
+      "model_name": "prophet",
+      "history_months": 24,
+      "mae": 1.1415919711182776,
+      "mase": 0.9097759260899297,
+      "coverage": 0.9485428051001822,
+      "mean_width": 6.864507973919548
+    },
+    {
+      "model_name": "seasonal_naive",
+      "history_months": 6,
+      "mae": 1.4224570582877958,
+      "mase": 1.1781794458667776,
+      "coverage": 0.8934426229508197,
+      "mean_width": 10.233326591612459
+    },
+    {
+      "model_name": "seasonal_naive",
+      "history_months": 12,
+      "mae": 1.4224570582877958,
+      "mase": 1.1921020153385606,
+      "coverage": 0.8948087431693988,
+      "mean_width": 10.429537152834966
+    },
+    {
+      "model_name": "seasonal_naive",
+      "history_months": 24,
+      "mae": 1.4224570582877958,
+      "mase": 1.1656310465210404,
+      "coverage": 0.8875227686703097,
+      "mean_width": 10.884265160598074
+    }
+  ]
+}

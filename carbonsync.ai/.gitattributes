@@ -1,0 +1,6 @@
+# Text files are stored with LF line endings in the repository
+* text=auto
+
+# Windows launchers keep CRLF line endings on every checkout (cmd.exe misreads labels in LF-only files)
+*.bat text eol=crlf
+*.ps1 text eol=crlf
